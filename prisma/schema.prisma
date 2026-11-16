@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model HeritageSite {
+  id          String     @id @default(cuid())
+  name        String
+  city        String
+  state       String
+  country     String     @default("India")
+  category    String
+  description String
+  latitude    Float
+  longitude   Float
+  locations   Location[]
+  routes      Route[]
+  alerts      Alert[]
+  createdAt   DateTime   @default(now())
+}
+
+model Location {
+  id            String       @id @default(cuid())
+  name          String
+  description   String
+  latitude      Float
+  longitude     Float
+  siteId        String
+  site          HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  crowdReports  CrowdReport[]
+}
+
+model Route {
+  id              String       @id @default(cuid())
+  name            String
+  distanceMetres  Int
+  estimatedMins   Int
+  crowdLevel      Int          // Demo scale: 0 (low) to 100 (high)
+  safetyRisk      Int          @default(0) // Demo scale: 0 (low) to 100 (high)
+  siteId          String
+  site            HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+model CrowdReport {
+  id          String   @id @default(cuid())
+  level       Int
+  source      String   @default("ADMIN")
+  reportedAt  DateTime @default(now())
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id        String       @id @default(cuid())
+  title     String
+  message   String
+  severity  String
+  active    Boolean      @default(true)
+  siteId    String
+  site      HeritageSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+}
